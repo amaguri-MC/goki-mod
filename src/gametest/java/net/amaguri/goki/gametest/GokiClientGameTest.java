@@ -65,10 +65,11 @@ public class GokiClientGameTest implements FabricClientGameTest {
 				setCamera(context, CameraType.FIRST_PERSON);
 				closeScreens(context);
 				if (n == 3 || n == 6) {
-					context.runOnClient(c -> c.options.hideGui = true);
+					context.getInput().pressKey(o -> o.keyToggleGui);
 					context.waitTicks(3);
 					context.takeScreenshot("stage" + n + "_4_f1");
-					context.runOnClient(c -> c.options.hideGui = false);
+					context.getInput().pressKey(o -> o.keyToggleGui);
+					context.waitTicks(2);
 				}
 			}
 
