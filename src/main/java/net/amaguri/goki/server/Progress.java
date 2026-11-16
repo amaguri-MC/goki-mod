@@ -87,8 +87,8 @@ public final class Progress {
 			case 3 -> has(p, Items.DIAMOND);
 			case 4 -> p.level().dimension() == Level.NETHER;
 			case 5 -> has(p, Items.BLAZE_ROD);
-			case 6 -> has(p, Items.ENDER_EYE);
-			case 7 -> count(p, Items.ENDER_EYE) >= 2; // follow_ender_eye is hard to reach in creative
+			case 6 -> has(p, Items.ENDER_PEARL);
+			case 7 -> has(p, Items.ENDER_EYE); // follow_ender_eye is hard to reach in creative
 			case 8 -> p.level().dimension() == Level.END;
 			default -> false;
 		};

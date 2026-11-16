@@ -1,4 +1,15 @@
 {
   "death.attack.insecticide": "%1$s は殺虫剤でやられた",
-  "death.attack.insecticide.player": "%1$s は %2$s との戦いで殺虫剤でやられた"
+  "death.attack.insecticide.player": "%1$s は %2$s との戦いで殺虫剤でやられた",
+  "goki.hud.level": "Lv.%s",
+  "goki.hud.next_goal": "次の目標：%s",
+  "goki.hud.goal.0": "石を掘ろう",
+  "goki.hud.goal.1": "鉄を精錬しよう",
+  "goki.hud.goal.2": "ダイヤモンドを手に入れよう",
+  "goki.hud.goal.3": "ネザーへ行こう",
+  "goki.hud.goal.4": "ブレイズロッドを手に入れよう",
+  "goki.hud.goal.5": "エンダーパールを手に入れよう",
+  "goki.hud.goal.6": "要塞を見つけよう",
+  "goki.hud.goal.7": "エンドへ行こう",
+  "goki.hud.goal.8": "エンダードラゴンを倒そう！"
 }

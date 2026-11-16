@@ -10,7 +10,7 @@ package net.amaguri.goki;
  * 3 minecraft:story/mine_diamond      all: speed +20% total      target: hands/forearms slightly brown (overlay 1)
  * 4 minecraft:story/enter_the_nether  all: fire resistance       target: arms brown (overlay 2), can climb walls
  * 5 minecraft:nether/obtain_blaze_rod all: attack +2             target: gets a normal-looking elytra equipped ("you can glide now!")
- * 6 item:minecraft:ender_eye          all: block break speed +20% target: antennae (HUD tips in 1st person, on head for others)
+ * 6 item:minecraft:ender_pearl        all: block break speed +20% target: antennae (HUD tips in 1st person, on head for others)
  *   ("item:<id>" = somebody has that item in their inventory; there is no vanilla advancement for it)
  * 7 minecraft:story/follow_ender_eye  all: night vision          target: whole body brown + wings (overlay 3), rustling steps, elytra slightly brown
  * 8 minecraft:story/enter_the_end     all: max health +4         target: full cockroach bodysuit (overlay 4, own face visible), elytra = cockroach wings
@@ -35,7 +35,7 @@ public final class GokiStage {
 			"minecraft:story/mine_diamond",
 			"minecraft:story/enter_the_nether",
 			"minecraft:nether/obtain_blaze_rod",
-			"item:minecraft:ender_eye",
+			"item:minecraft:ender_pearl",
 			"minecraft:story/follow_ender_eye",
 			"minecraft:story/enter_the_end",
 	};

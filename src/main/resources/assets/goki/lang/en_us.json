@@ -1,4 +1,15 @@
 {
   "death.attack.insecticide": "%1$s was sprayed with insecticide",
-  "death.attack.insecticide.player": "%1$s was sprayed with insecticide while fighting %2$s"
+  "death.attack.insecticide.player": "%1$s was sprayed with insecticide while fighting %2$s",
+  "goki.hud.level": "Lv.%s",
+  "goki.hud.next_goal": "Next goal: %s",
+  "goki.hud.goal.0": "Mine some stone",
+  "goki.hud.goal.1": "Smelt iron",
+  "goki.hud.goal.2": "Get a diamond",
+  "goki.hud.goal.3": "Go to the Nether",
+  "goki.hud.goal.4": "Get a blaze rod",
+  "goki.hud.goal.5": "Get an ender pearl",
+  "goki.hud.goal.6": "Find a stronghold",
+  "goki.hud.goal.7": "Go to the End",
+  "goki.hud.goal.8": "Defeat the Ender Dragon!"
 }
