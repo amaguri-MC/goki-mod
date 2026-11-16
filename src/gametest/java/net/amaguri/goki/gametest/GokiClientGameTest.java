@@ -49,7 +49,7 @@ public class GokiClientGameTest implements FabricClientGameTest {
 				if (n > 0) {
 					context.waitFor(c -> ClientGokiState.stage == stage, 200);
 				}
-				log("stage set " + n + " clientStage=" + ClientGokiState.stage + " selfIsTarget=" + ClientGokiState.selfIsTarget());
+				log("stage set " + n + " clientStage=" + ClientGokiState.stage + " selfIsTarget=" + context.computeOnClient(c -> ClientGokiState.selfIsTarget()));
 				sp.getConnection().waitForClientboundPackets();
 				context.waitTicks(80); // let the level-up title fade
 				closeScreens(context);
