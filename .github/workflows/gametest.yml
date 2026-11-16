@@ -16,7 +16,7 @@ jobs:
           java-version: '25'
           distribution: 'microsoft'
       - run: sudo apt-get update && sudo apt-get install -y xvfb mesa-utils libgl1-mesa-dri
-      - run: chmod +x ./gradlew && mkdir -p run && echo "eula=true" > run/eula.txt
+      - run: chmod +x ./gradlew && mkdir -p run && echo "eula=true" > run/eula.txt && echo "lang:ja_jp" > run/options.txt
       - name: resolve build dependencies (retried)
         run: for i in 1 2 3; do ./gradlew help && exit 0; sleep 30; done; exit 1
         shell: bash
