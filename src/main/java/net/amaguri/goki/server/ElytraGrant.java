@@ -1,11 +1,9 @@
 package net.amaguri.goki.server;
 
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Unit;
-import net.minecraft.ChatFormatting;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -14,9 +12,10 @@ import net.minecraft.world.item.component.TooltipDisplay;
 import net.amaguri.goki.GokiStage;
 
 /**
- * Once the stage reaches GokiStage.elytra (5), the target gets an unbreakable elytra in the chest slot, one time.
+ * Once the stage reaches GokiStage.elytra (stage 5+), the target gets an unbreakable elytra in the chest slot, one time.
  * A chestplate already worn goes to the inventory (or drops at the feet if it is full). The "given" flag is
- * saved in goki_state.json and reset when the stage is set below 5.
+ * saved in goki_state.json and reset when the stage drops below the elytra stage. The chat line comes from
+ * StageText.targetBonus(5) via LevelUp.
  */
 public final class ElytraGrant {
 	private ElytraGrant() {
@@ -32,7 +31,6 @@ public final class ElytraGrant {
 		}
 		give(p);
 		GokiState.markElytraGiven();
-		p.sendSystemMessage(Component.literal("▶ 滑空できるようになった！").withStyle(ChatFormatting.GREEN));
 	}
 
 	private static void give(ServerPlayer p) {

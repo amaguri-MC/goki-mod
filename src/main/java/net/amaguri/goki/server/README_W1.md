@@ -35,7 +35,7 @@
 - 段階を飛ばした時: title/音は最後の1回。ターゲットのチャットだけは通過した段階の分を全部出す（取りこぼし防止）。
 
 ## コマンド（結果は実行者にだけ。`sendSuccess(..., false)`）
-`/goki target <player>` / `/goki target clear` / `/goki stage <0..7>`（上げる時は演出あり）/
+`/goki target <player>` / `/goki target clear` / `/goki stage <0..MAX(8)>`（上げる時は演出あり）/
 `/goki spray`（ターゲットの位置にスプレーの雲＝触れたら即死。撮り直し用）/ `/goki status`（target・stage・スプレーON/OFF・竜HPと狙い撃ち中か）
 
 ## API 確認

@@ -28,6 +28,7 @@ public final class Enhancements {
 	private static final Identifier ID_SPEED = GokiMod.id("speed");
 	private static final Identifier ID_ARMOR = GokiMod.id("armor");
 	private static final Identifier ID_ATTACK = GokiMod.id("attack");
+	private static final Identifier ID_BREAK = GokiMod.id("break_speed");
 	private static final Identifier ID_HEALTH = GokiMod.id("max_health");
 
 	/** Effect length when (re)applied, and the remaining time below which it is topped up. Must stay above the 200-tick night vision flicker. */
@@ -45,6 +46,7 @@ public final class Enhancements {
 		modifier(p, Attributes.MOVEMENT_SPEED, ID_SPEED, StageLogic.speedBonus(stage), AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
 		modifier(p, Attributes.ARMOR, ID_ARMOR, StageLogic.armorBonus(stage), AttributeModifier.Operation.ADD_VALUE);
 		modifier(p, Attributes.ATTACK_DAMAGE, ID_ATTACK, StageLogic.attackBonus(stage), AttributeModifier.Operation.ADD_VALUE);
+		modifier(p, Attributes.BLOCK_BREAK_SPEED, ID_BREAK, StageLogic.breakSpeedBonus(stage), AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
 		modifier(p, Attributes.MAX_HEALTH, ID_HEALTH, StageLogic.maxHealthBonus(stage), AttributeModifier.Operation.ADD_VALUE);
 		effect(p, MobEffects.FIRE_RESISTANCE, StageLogic.fireResistance(stage));
 		effect(p, MobEffects.NIGHT_VISION, StageLogic.nightVision(stage));

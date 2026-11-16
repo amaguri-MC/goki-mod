@@ -12,6 +12,7 @@ import net.amaguri.goki.GokiHooks;
 import net.amaguri.goki.GokiMod;
 import net.amaguri.goki.client.render.AntennaHud;
 import net.amaguri.goki.client.render.AntennaLayer;
+import net.amaguri.goki.client.render.NextGoalHud;
 import net.amaguri.goki.client.render.OverlayLayer;
 import net.amaguri.goki.net.StageSyncPayload;
 
@@ -41,5 +42,8 @@ public final class GokiClient implements ClientModInitializer {
 		// 1st person: antenna tips at the top of the screen. Attached after a vanilla element so it
 		// inherits the vanilla render condition (hidden with F1).
 		HudElementRegistry.attachElementAfter(VanillaHudElements.MISC_OVERLAYS, GokiMod.id("antenna_hud"), AntennaHud::extract);
+
+		// everybody: "next goal" text at the top left (while a target exists)
+		HudElementRegistry.attachElementAfter(VanillaHudElements.MISC_OVERLAYS, GokiMod.id("next_goal_hud"), NextGoalHud::extract);
 	}
 }

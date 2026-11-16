@@ -18,8 +18,9 @@ public final class StageText {
 			case 3 -> "さらに足が速くなった！";
 			case 4 -> "炎に強くなった！";
 			case 5 -> "攻撃力が上がった！";
-			case 6 -> "暗闇でも見えるようになった！";
-			case 7 -> "体力の上限が増えた！";
+			case 6 -> "採掘が速くなった！";
+			case 7 -> "暗闇でも見えるようになった！";
+			case 8 -> "体力の上限が増えた！";
 			default -> null;
 		};
 	}
@@ -29,9 +30,10 @@ public final class StageText {
 		return switch (stage) {
 			case 2 -> "お腹が空かない体になった！";
 			case 4 -> "壁を登れるようになった！";
-			case 5 -> "感覚が鋭くなった！";
-			case 6 -> "身のこなしが軽くなった！";
-			case 7 -> "さらに強くなった気がする…！";
+			case 5 -> "滑空できるようになった！";
+			case 6 -> "感覚が鋭くなった！";
+			case 7 -> "身のこなしが軽くなった！";
+			case 8 -> "さらに強くなった気がする…！";
 			default -> null;
 		};
 	}

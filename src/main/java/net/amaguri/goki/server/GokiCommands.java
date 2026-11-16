@@ -19,7 +19,7 @@ import net.amaguri.goki.GokiStage;
 /**
  * /goki (permission level 2). Results go to the executor only (sendSuccess(..., false) does not broadcast to ops).
  *
- * target &lt;player&gt; | target clear | stage &lt;0..7&gt; | spray | status
+ * target &lt;player&gt; | target clear | stage &lt;0..MAX&gt; | spray | status
  */
 public final class GokiCommands {
 	private GokiCommands() {
