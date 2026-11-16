@@ -44,6 +44,6 @@ public final class GokiClient implements ClientModInitializer {
 		HudElementRegistry.attachElementAfter(VanillaHudElements.MISC_OVERLAYS, GokiMod.id("antenna_hud"), AntennaHud::extract);
 
 		// everybody: "next goal" text at the top left (while a target exists)
-		HudElementRegistry.attachElementAfter(VanillaHudElements.MISC_OVERLAYS, GokiMod.id("next_goal_hud"), NextGoalHud::extract);
+		HudElementRegistry.attachElementAfter(GokiMod.id("antenna_hud"), GokiMod.id("next_goal_hud"), NextGoalHud::extract);
 	}
 }
