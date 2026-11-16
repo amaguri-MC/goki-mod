@@ -1,0 +1,13 @@
+{
+	"schemaVersion": 1,
+	"id": "goki-gametest",
+	"version": "1.0.0",
+	"name": "Goki client gametest",
+	"environment": "client",
+	"license": "All-Rights-Reserved",
+	"entrypoints": {
+		"fabric-client-gametest": [
+			"net.amaguri.goki.gametest.GokiClientGameTest"
+		]
+	}
+}
