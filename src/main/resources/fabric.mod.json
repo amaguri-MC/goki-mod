@@ -6,6 +6,7 @@
 	"description": "Everyone levels up... right?",
 	"authors": ["amaguri"],
 	"license": "All-Rights-Reserved",
+	"icon": "assets/goki/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": ["net.amaguri.goki.GokiMod"],

@@ -1,8 +1,5 @@
 package net.amaguri.goki.server;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -10,7 +7,6 @@ import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -23,13 +19,11 @@ import net.amaguri.goki.GokiStage;
 /**
  * /goki (permission level 2). Results go to the executor only (sendSuccess(..., false) does not broadcast to ops).
  *
- * target &lt;player&gt; | target clear | stage &lt;0..8&gt; | trap | free | status
+ * target &lt;player&gt; | target clear | stage &lt;0..7&gt; | spray | status
  */
 public final class GokiCommands {
 	private GokiCommands() {
 	}
-
-	private static final int FREE_RADIUS = 8;
 
 	public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
 		dispatcher.register(Commands.literal("goki")
@@ -38,9 +32,8 @@ public final class GokiCommands {
 						.then(Commands.literal("clear").executes(GokiCommands::targetClear))
 						.then(Commands.argument("player", EntityArgument.player()).executes(GokiCommands::targetSet)))
 				.then(Commands.literal("stage")
-						.then(Commands.argument("n", IntegerArgumentType.integer(GokiStage.START, GokiStage.TRAPPED)).executes(GokiCommands::stage)))
-				.then(Commands.literal("trap").executes(GokiCommands::trap))
-				.then(Commands.literal("free").executes(GokiCommands::free))
+						.then(Commands.argument("n", IntegerArgumentType.integer(GokiStage.START, GokiStage.MAX)).executes(GokiCommands::stage)))
+				.then(Commands.literal("spray").executes(GokiCommands::spray))
 				.then(Commands.literal("status").executes(GokiCommands::status)));
 	}
 
@@ -68,60 +61,23 @@ public final class GokiCommands {
 		int old = GokiState.setStage(server, n);
 		Enhancements.applyAll(server);
 		if (n > old) {
-			LevelUp.announce(server, old, n); // ignores 8 (trap has its own scene)
+			LevelUp.announce(server, old, n);
 		}
 		say(ctx, "stage " + old + " -> " + GokiState.stage());
 		return 1;
 	}
 
-	private static int trap(CommandContext<CommandSourceStack> ctx) {
+	/** Spray cloud right on the target (for re-shooting the ending). It kills the target like the real thing. */
+	private static int spray(CommandContext<CommandSourceStack> ctx) {
 		CommandSourceStack src = ctx.getSource();
-		MinecraftServer server = src.getServer();
-		ServerPlayer target = GokiState.onlineTarget(server);
-		if (target != null) {
-			TrapController.fire(server, target);
-			Enhancements.applyAll(server);
-			say(ctx, "ターゲット " + target.getPlainTextName() + " の足元にとりもちを置きました（stage 8）");
-			return 1;
-		}
-		ServerPlayer self = src.getPlayer();
-		if (self == null) {
+		ServerPlayer target = GokiState.onlineTarget(src.getServer());
+		if (target == null) {
 			src.sendFailure(Component.literal("オンラインのターゲットがいません"));
 			return 0;
 		}
-		TrapController.place(self);
-		say(ctx, "ターゲット不在のため、あなたの足元にとりもちを置きました（stage は変えていません）");
+		SprayClouds.spawn(target.level(), target.getX(), target.getY(), target.getZ(), null, 100);
+		say(ctx, "ターゲット " + target.getPlainTextName() + " の位置にスプレーの雲を出しました");
 		return 1;
-	}
-
-	private static int free(CommandContext<CommandSourceStack> ctx) {
-		CommandSourceStack src = ctx.getSource();
-		MinecraftServer server = src.getServer();
-		Set<BlockPos> done = new HashSet<>();
-		int removed = 0;
-		removed += clear(src.getLevel(), BlockPos.containing(src.getPosition()), done);
-		ServerPlayer target = GokiState.onlineTarget(server);
-		if (target != null) {
-			removed += clear(target.level(), target.blockPosition(), done);
-		}
-		say(ctx, "とりもちを " + removed + " 個撤去しました（半径 " + FREE_RADIUS + "）");
-		return removed;
-	}
-
-	private static int clear(ServerLevel level, BlockPos center, Set<BlockPos> done) {
-		int count = 0;
-		BlockPos min = center.offset(-FREE_RADIUS, -FREE_RADIUS, -FREE_RADIUS);
-		BlockPos max = center.offset(FREE_RADIUS, FREE_RADIUS, FREE_RADIUS);
-		for (BlockPos p : BlockPos.betweenClosed(min, max)) {
-			if (level.getBlockState(p).is(GokiBlocks.TORIMOCHI)) {
-				BlockPos fixed = p.immutable();
-				if (done.add(fixed)) {
-					level.removeBlock(fixed, false);
-					count++;
-				}
-			}
-		}
-		return count;
 	}
 
 	private static int status(CommandContext<CommandSourceStack> ctx) {
@@ -136,15 +92,18 @@ public final class GokiCommands {
 			who = GokiState.targetName() + "（オフライン " + GokiState.target() + "）";
 		}
 		StringBuilder sb = new StringBuilder();
-		sb.append("target: ").append(who).append("\nstage: ").append(GokiState.stage()).append(" / ").append(GokiStage.TRAPPED);
+		sb.append("target: ").append(who).append("\nstage: ").append(GokiState.stage()).append(" / ").append(GokiStage.MAX);
+		sb.append("\nスプレー化: ").append(SprayClouds.active() ? "ON（ターゲット設定中）" : "OFF（完全バニラ）");
 		if (target != null) {
-			boolean inEnd = target.level().dimension() == Level.END;
-			sb.append("\nターゲットのディメンション: ").append(target.level().dimension().identifier());
+			ServerLevel level = target.level();
+			boolean inEnd = level.dimension() == Level.END;
+			sb.append("\nターゲットのディメンション: ").append(level.dimension().identifier());
 			if (inEnd) {
-				for (EnderDragon d : target.level().getDragons()) {
+				for (EnderDragon d : level.getDragons()) {
 					if (d.isAlive() && d.getMaxHealth() > 0.0f) {
-						sb.append(String.format("\nドラゴン体力: %.0f/%.0f (%.0f%%, 罠は %.0f%% 以下)", d.getHealth(), d.getMaxHealth(),
-								100.0 * d.getHealth() / d.getMaxHealth(), 100.0 * GokiStage.TRAP_DRAGON_HEALTH_RATIO));
+						boolean focus = SprayClouds.focusTarget(level, d) != null;
+						sb.append(String.format("\nドラゴン体力: %.0f/%.0f (%.0f%%) 狙い撃ち(%.0f%%以下): %s", d.getHealth(), d.getMaxHealth(),
+								100.0 * d.getHealth() / d.getMaxHealth(), 100.0 * GokiStage.SPRAY_FOCUS_HEALTH_RATIO, focus ? "ON" : "OFF"));
 					}
 				}
 			}

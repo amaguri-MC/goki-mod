@@ -4,13 +4,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.resources.Identifier;
 
 import net.fabricmc.fabric.api.client.rendering.v1.RenderStateDataKey;
-
-import net.amaguri.goki.GokiStage;
 
 /** Shared client rendering helpers. */
 public final class GokiRender {
@@ -23,11 +20,6 @@ public final class GokiRender {
 	public static int stage(EntityRenderState state) {
 		Integer v = state.getData(STAGE);
 		return v == null ? 0 : v;
-	}
-
-	/** True when this avatar must be drawn as a cockroach instead of the player model. */
-	public static boolean isCockroach(AvatarRenderState state) {
-		return GokiStage.cockroachModel(stage(state));
 	}
 
 	// ---- texture presence check (W3's PNGs may not exist yet: never draw a missing-texture checkerboard) ----

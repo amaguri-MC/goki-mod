@@ -3,6 +3,9 @@
 	"package": "net.amaguri.goki.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"mixins": [
+		"DragonFireballMixin",
+		"DragonFlamingPhaseMixin",
+		"DragonStrafeFocusMixin",
 		"FoodDataMixin",
 		"PlayerClimbMixin"
 	],

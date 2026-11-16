@@ -23,7 +23,7 @@ public final class AntennaLayer extends RenderLayer<AvatarRenderState, PlayerMod
 	@Override
 	public void submit(PoseStack poseStack, SubmitNodeCollector collector, int light, AvatarRenderState state, float yRot, float xRot) {
 		int stage = GokiRender.stage(state);
-		if (!GokiStage.antennae(stage) || GokiStage.cockroachModel(stage) || state.isInvisible) {
+		if (!GokiStage.antennae(stage) || state.isInvisible) {
 			return;
 		}
 		PlayerModel player = this.getParentModel();

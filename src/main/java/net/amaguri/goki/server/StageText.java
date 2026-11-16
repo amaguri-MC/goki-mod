@@ -9,7 +9,6 @@ public final class StageText {
 	}
 
 	public static final String TITLE = "LEVEL UP!";
-	public static final String TRAP_SUBTITLE = "…あれ？動けない！？";
 
 	/** Subtitle shown to everybody, or null if the stage has no level-up. */
 	public static String publicSubtitle(int stage) {

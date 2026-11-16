@@ -9,14 +9,12 @@ import net.minecraft.server.MinecraftServer;
 
 import net.amaguri.goki.GokiHooks;
 
-/** Server entry (called from GokiMod.onInitialize): block, state, events, commands. */
+/** Server entry (called from GokiMod.onInitialize): state, events, commands. */
 public final class GokiServer {
 	private GokiServer() {
 	}
 
 	public static void init() {
-		GokiBlocks.register();
-
 		// the mixins (wall climbing, hunger) ask this on the logical server
 		GokiHooks.SERVER_STAGE = player -> GokiState.stageFor(player.getUUID());
 
@@ -45,9 +43,7 @@ public final class GokiServer {
 			Progress.check(server);
 			Enhancements.applyAll(server); // keeps buffs alive across logout, death, dimension change, milk
 		}
-		if (t % 10 == 5) {
-			TrapController.check(server);
-		}
+		SprayClouds.tick(server);
 		Rustle.tick(server);
 	}
 }

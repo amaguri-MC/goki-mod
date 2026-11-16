@@ -21,6 +21,7 @@ public final class GokiClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		// common code (climbing etc.) asks the client-side stage through this hook
 		GokiHooks.CLIENT_STAGE = p -> ClientGokiState.stageOf(p.getUUID());
+		net.amaguri.goki.client.spray.SprayClient.init();
 
 		// server -> client: who the target is and the current stage
 		ClientPlayNetworking.registerGlobalReceiver(StageSyncPayload.TYPE, (payload, context) -> {

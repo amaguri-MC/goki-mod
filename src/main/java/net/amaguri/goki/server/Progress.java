@@ -14,7 +14,7 @@ public final class Progress {
 
 	public static void check(MinecraftServer server) {
 		int current = GokiState.stage();
-		if (current >= GokiStage.MAX_ADVANCEMENT_STAGE) {
+		if (current >= GokiStage.MAX) {
 			return;
 		}
 		int next = StageLogic.nextStage(current, n -> anyoneDone(server, n));

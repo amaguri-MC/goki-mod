@@ -4,7 +4,10 @@
 	"compatibilityLevel": "JAVA_25",
 	"client": [
 		"AvatarRendererMixin",
-		"LivingEntityRendererMixin"
+		"spray.DragonFireballMixin",
+		"spray.DragonFireballRendererMixin",
+		"spray.DragonSittingFlamingPhaseMixin",
+		"spray.EnderDragonRendererMixin"
 	],
 	"injectors": { "defaultRequire": 1 }
 }

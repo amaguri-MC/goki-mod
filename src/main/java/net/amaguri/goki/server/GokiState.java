@@ -15,7 +15,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
 
-import net.amaguri.goki.GokiStage;
 import net.amaguri.goki.net.StageSyncPayload;
 
 /**
@@ -155,7 +154,4 @@ public final class GokiState {
 		}
 	}
 
-	public static boolean trapped() {
-		return GokiStage.trapped(stage);
-	}
 }

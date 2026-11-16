@@ -4,8 +4,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.client.entity.ClientAvatarEntity;
 import net.minecraft.client.model.geom.ModelPart;
@@ -31,12 +31,23 @@ public abstract class AvatarRendererMixin<AvatarlikeEntity extends Avatar & Clie
 		state.setData(GokiRender.STAGE, ClientGokiState.stageOf(entity.getUUID()));
 	}
 
-	/** Stage 7+: the body is a cockroach, so no armor/cape/held item/etc. layers on top of it. */
-	@Inject(method = "shouldRenderLayers(Lnet/minecraft/client/renderer/entity/state/AvatarRenderState;)Z", at = @At("HEAD"), cancellable = true)
-	private void goki$noLayersOnCockroach(AvatarRenderState state, CallbackInfoReturnable<Boolean> cir) {
-		if (GokiRender.isCockroach(state)) {
-			cir.setReturnValue(false);
+	/** Level 4 (stage 7) is opaque: hide the skin's second layer (hat/jacket/sleeves/pants) so it cannot show through. */
+	@Inject(method = "extractRenderState(Lnet/minecraft/world/entity/Avatar;Lnet/minecraft/client/renderer/entity/state/AvatarRenderState;F)V", at = @At("TAIL"))
+	private void goki$hideSecondLayer(AvatarlikeEntity entity, AvatarRenderState state, float partialTick, CallbackInfo ci) {
+		if (GokiStage.overlayLevel(GokiRender.stage(state)) >= 4) {
+			state.showHat = false;
+			state.showJacket = false;
+			state.showLeftSleeve = false;
+			state.showRightSleeve = false;
+			state.showLeftPants = false;
+			state.showRightPants = false;
 		}
+	}
+
+	/** First-person: same for the sleeve layer of the arm. */
+	@ModifyVariable(method = "renderHand(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;Lnet/minecraft/client/model/geom/ModelPart;Z)V", at = @At("HEAD"), argsOnly = true)
+	private boolean goki$noSleeve(boolean sleeveVisible) {
+		return sleeveVisible && !(ClientGokiState.selfIsTarget() && GokiStage.overlayLevel(ClientGokiState.stage) >= 4);
 	}
 
 	/**
@@ -56,6 +67,6 @@ public abstract class AvatarRendererMixin<AvatarlikeEntity extends Avatar & Clie
 		if (!GokiRender.textureExists(texture)) {
 			return;
 		}
-		collector.submitModelPart(arm, poseStack, RenderTypes.entityTranslucent(texture), light, OverlayTexture.NO_OVERLAY, null);
+		collector.submitModelPart(arm, poseStack, (level >= 4 ? RenderTypes.entityCutout(texture) : RenderTypes.entityTranslucent(texture)), light, OverlayTexture.NO_OVERLAY, null);
 	}
 }

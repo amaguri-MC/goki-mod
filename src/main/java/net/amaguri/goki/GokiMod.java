@@ -17,6 +17,7 @@ public final class GokiMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		GokiNetwork.registerPayloads();
+		GokiParticles.init();
 		GokiServer.init(); // owner: W1 (registers blocks, events, commands)
 	}
 }

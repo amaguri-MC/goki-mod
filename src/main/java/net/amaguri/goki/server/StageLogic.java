@@ -15,21 +15,21 @@ public final class StageLogic {
 	public static final float RUSTLE_CHANCE = 0.35f;
 
 	public static int clamp(int stage) {
-		return Math.max(GokiStage.START, Math.min(GokiStage.TRAPPED, stage));
+		return Math.max(GokiStage.START, Math.min(GokiStage.MAX, stage));
 	}
 
 	/**
-	 * Next stage from advancement progress. Never goes down. The highest n (1..MAX_ADVANCEMENT_STAGE) whose
-	 * advancement somebody has wins, so skipped stages are jumped over. Stage TRAPPED is final.
+	 * Next stage from advancement progress. Never goes down. The highest n (1..MAX) whose advancement somebody
+	 * has wins, so skipped stages are jumped over.
 	 *
 	 * @param achieved asks "has anybody completed ADVANCEMENTS[n]?" (called top-down, lazily)
 	 */
 	public static int nextStage(int current, IntPredicate achieved) {
 		int s = clamp(current);
-		if (s >= GokiStage.TRAPPED) {
+		if (s >= GokiStage.MAX) {
 			return s;
 		}
-		for (int n = GokiStage.MAX_ADVANCEMENT_STAGE; n > s; n--) {
+		for (int n = GokiStage.MAX; n > s; n--) {
 			if (achieved.test(n)) {
 				return n;
 			}
@@ -37,15 +37,20 @@ public final class StageLogic {
 		return s;
 	}
 
-	/** Trap condition: stage 7, target in the End, a living dragon at or below the health ratio. */
-	public static boolean shouldTrap(int stage, boolean targetInEnd, boolean dragonAlive, float health, float maxHealth) {
-		if (stage != GokiStage.MAX_ADVANCEMENT_STAGE || !targetInEnd || !dragonAlive) {
+	/**
+	 * Late-fight focus: the dragon aims its fireballs / breath at the target while its health ratio is at or below
+	 * SPRAY_FOCUS_HEALTH_RATIO and the target is in the End.
+	 */
+	public static boolean sprayFocus(boolean targetInEnd, boolean dragonAlive, float health, float maxHealth) {
+		if (!targetInEnd || !dragonAlive || maxHealth <= 0.0f || health <= 0.0f) {
 			return false;
 		}
-		if (maxHealth <= 0.0f || health <= 0.0f) {
-			return false;
-		}
-		return health / maxHealth <= GokiStage.TRAP_DRAGON_HEALTH_RATIO;
+		return health / maxHealth <= GokiStage.SPRAY_FOCUS_HEALTH_RATIO;
+	}
+
+	/** Same test vanilla uses for a cloud: horizontal distance from the cloud centre within its radius. */
+	public static boolean insideCloud(double dx, double dz, float radius) {
+		return dx * dx + dz * dz <= (double) radius * radius;
 	}
 
 	/** Whether the rustle sound should be considered after walking {@code accumulated} blocks. */

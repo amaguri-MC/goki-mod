@@ -7,10 +7,8 @@
 | Mixin | ターゲット | 宣言クラス | 確認 |
 |---|---|---|---|
 | AvatarRendererMixin | `AvatarRenderer.extractRenderState(Avatar, AvatarRenderState, F)V` TAIL | AvatarRenderer（宣言あり。ディスクリプタは Fabric testmod と同形） | OK |
-| AvatarRendererMixin | `AvatarRenderer.shouldRenderLayers(AvatarRenderState)Z` HEAD | AvatarRenderer（protected 宣言あり） | OK |
+| AvatarRendererMixin | `AvatarRenderer.extractRenderState` TAIL を2つ目（stage7で第二層を非表示）、`renderHand` に @ModifyVariable(sleeveVisible) | AvatarRenderer | OK |
 | AvatarRendererMixin | `AvatarRenderer.renderHand(PoseStack, SubmitNodeCollector, I, Identifier, ModelPart, Z)V` TAIL（private） | AvatarRenderer（renderRightHand/LeftHand が呼ぶ） | OK |
-| LivingEntityRendererMixin | `LivingEntityRenderer.submit(LivingEntityRenderState, PoseStack, SubmitNodeCollector, CameraRenderState)V` HEAD | **LivingEntityRenderer**（AvatarRenderer は submit を宣言していない） | OK |
-| LivingEntityRendererMixin | `LivingEntityRenderer.getRenderType(LivingEntityRenderState, Z, Z, Z)RenderType` HEAD cancel(null) | **LivingEntityRenderer**（AvatarRenderer は宣言していない） | OK |
 
 ## Fabric API
 - `LivingEntityRenderLayerRegistrationCallback.EVENT` + `RegistrationHelper.register(RenderLayer)`（fabric-rendering-v1、AvatarRenderer 向けの使用例が testmod にある）
@@ -28,7 +26,7 @@
 
 ## 設計メモ
 - ターゲット判定は `AvatarRenderer.extractRenderState` で `ClientGokiState.stageOf(uuid)` を render state（`GokiRender.STAGE`）に入れ、以降は全てそれを参照。ターゲット以外は 0 なので何も変わらない。
-- ゴキブリ化: `LivingEntityRenderer.submit` の先頭でゴキブリを描き、バニラ本体は `getRenderType`=null（透明エンティティと同じ経路）と `shouldRenderLayers`=false で抑止。名前タグはバニラの流れでそのまま出る。
+- stage7: 専用モデルは廃止。OverlayLayer/一人称の腕が OVERLAY[4] を不透明(entityCutout)で描き、第二層（帽子・上着等）は render state の show* を false にして隠す。
 - 一人称の腕: `renderHand` の末尾で同じ ModelPart にオーバーレイを重ね描き（ローカルプレイヤー＝ターゲットの時のみ）。
 - W3 のテクスチャ（OVERLAY / ANTENNA_HUD）は `GokiRender.textureExists`（リソース有無を2秒キャッシュ）で確認し、無ければ描かない。
 - モデルは `LayerDefinition.bakeRoot()` を自前で呼ぶ（モデルレイヤー登録不要）。形状・UV は `agent/tasks/w2/tools/spec.py` から生成（CockroachModel/AntennaModel の createLayer）。

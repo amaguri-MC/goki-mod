@@ -15,7 +15,7 @@ import net.minecraft.resources.Identifier;
 import net.amaguri.goki.GokiAssets;
 import net.amaguri.goki.GokiStage;
 
-/** 3rd person: draws GokiAssets.OVERLAY[level] translucently ON TOP of the player's own skin (target only). */
+/** 3rd person: draws GokiAssets.OVERLAY[level] ON TOP (level 4 = opaque, second skin layer hidden) of the player's own skin (target only). */
 public final class OverlayLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
 	public OverlayLayer(RenderLayerParent<AvatarRenderState, PlayerModel> parent) {
 		super(parent);
@@ -34,7 +34,7 @@ public final class OverlayLayer extends RenderLayer<AvatarRenderState, PlayerMod
 		poseStack.pushPose();
 		// a hair larger than the body so the translucent overlay never z-fights with the skin
 		poseStack.scale(1.002F, 1.002F, 1.002F);
-		collector.submitModel(this.getParentModel(), state, poseStack, RenderTypes.entityTranslucent(texture), light,
+		collector.submitModel(this.getParentModel(), state, poseStack, (level >= 4 ? RenderTypes.entityCutout(texture) : RenderTypes.entityTranslucent(texture)), light,
 				LivingEntityRenderer.getOverlayCoords(state, 0.0F), EntityRenderState.NO_OUTLINE, null);
 		poseStack.popPose();
 	}
