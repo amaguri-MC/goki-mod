@@ -9,9 +9,10 @@ package net.amaguri.goki;
  * 2 minecraft:story/smelt_iron       all: armor +2            target: hunger never drops
  * 3 minecraft:story/mine_diamond     all: speed +20% total    target: hands/forearms slightly brown
  * 4 minecraft:story/enter_the_nether all: fire resistance     target: arms dark brown & glossy, can climb walls
- * 5 minecraft:nether/obtain_blaze_rod all: attack +2          target: antennae (HUD tips in 1st person, on head for others)
- * 6 minecraft:story/follow_ender_eye all: night vision        target: whole body brown + wing pattern, rustling steps
- * 7 minecraft:story/enter_the_end    all: max health +4       target: whole body (face too) becomes a cute cockroach-person skin (still the player model, no special model)
+ * 5 minecraft:nether/obtain_blaze_rod all: attack +2          target: antennae (HUD tips in 1st person, on head for others),
+ *                                                            gets a (normal-looking) elytra equipped: "you can glide now!"
+ * 6 minecraft:story/follow_ender_eye all: night vision        target: whole body brown + wing pattern, rustling steps, elytra slightly brown
+ * 7 minecraft:story/enter_the_end    all: max health +4       target: full cockroach bodysuit (overlay 4, own face stays visible; still the player model), elytra = brown cockroach wings
  *
  * Ending (no stage of its own): while a target is set, the Ender Dragon looks like an insecticide spray can
  * (to everyone). Its breath / fireballs become insecticide spray: harmless to everyone except the target,
@@ -47,4 +48,7 @@ public final class GokiStage {
 	public static boolean wallClimb(int s) { return s >= 4; }
 	public static boolean antennae(int s) { return s >= 5; }
 	public static boolean rustle(int s) { return s >= 6; }
+	public static boolean elytra(int s) { return s >= 5; }
+	/** Elytra look for the target: 0 = vanilla texture (stage 5), 1 = slightly brown (6), 2 = cockroach wings (7). */
+	public static int elytraLevel(int s) { return s >= 7 ? 2 : s >= 6 ? 1 : 0; }
 }

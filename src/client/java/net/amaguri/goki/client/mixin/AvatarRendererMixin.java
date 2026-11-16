@@ -8,7 +8,9 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.entity.ClientAvatarEntity;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.player.AvatarRenderer;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
@@ -16,11 +18,13 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Avatar;
+import net.minecraft.world.entity.player.PlayerModelType;
 
 import net.amaguri.goki.GokiAssets;
 import net.amaguri.goki.GokiStage;
 import net.amaguri.goki.client.ClientGokiState;
 import net.amaguri.goki.client.render.GokiRender;
+import net.amaguri.goki.client.render.OverlayModels;
 
 /** AvatarRenderer declares: extractRenderState(Avatar,...), shouldRenderLayers(AvatarRenderState), renderHand(...) (verified in apidump). */
 @Mixin(AvatarRenderer.class)
@@ -44,18 +48,33 @@ public abstract class AvatarRendererMixin<AvatarlikeEntity extends Avatar & Clie
 		}
 	}
 
-	/** First-person: same for the sleeve layer of the arm. */
-	@ModifyVariable(method = "renderHand(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;Lnet/minecraft/client/model/geom/ModelPart;Z)V", at = @At("HEAD"), argsOnly = true)
-	private boolean goki$noSleeve(boolean sleeveVisible) {
-		return sleeveVisible && !(ClientGokiState.selfIsTarget() && GokiStage.overlayLevel(ClientGokiState.stage) >= 4);
+	/** First-person (vanilla path: ItemInHandRenderer.renderPlayerArm -> renderRightHand/renderLeftHand): hide the sleeve layer at stage 7. */
+	@ModifyVariable(method = "renderRightHand(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;Z)V", at = @At("HEAD"), argsOnly = true)
+	private boolean goki$noSleeveR(boolean sleeveVisible) {
+		return sleeveVisible && !goki$level4();
 	}
 
-	/**
-	 * 1st person arm: vanilla has just drawn the skin arm; draw the brown overlay over it. Only the local player's arm
-	 * ever goes through renderRightHand/renderLeftHand, so the target check is "am I the target".
-	 */
-	@Inject(method = "renderHand(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;Lnet/minecraft/client/model/geom/ModelPart;Z)V", at = @At("TAIL"))
-	private void goki$overlayHand(PoseStack poseStack, SubmitNodeCollector collector, int light, Identifier skin, ModelPart arm, boolean sleeveVisible, CallbackInfo ci) {
+	@ModifyVariable(method = "renderLeftHand(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;Z)V", at = @At("HEAD"), argsOnly = true)
+	private boolean goki$noSleeveL(boolean sleeveVisible) {
+		return sleeveVisible && !goki$level4();
+	}
+
+	/** First-person arm: after vanilla drew the skin arm, draw the overlay on an inflated arm (outside the sleeve layer). */
+	@Inject(method = "renderRightHand(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;Z)V", at = @At("TAIL"))
+	private void goki$overlayRight(PoseStack poseStack, SubmitNodeCollector collector, int light, Identifier skin, boolean sleeveVisible, CallbackInfo ci) {
+		goki$overlayArm(poseStack, collector, light, true);
+	}
+
+	@Inject(method = "renderLeftHand(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;Z)V", at = @At("TAIL"))
+	private void goki$overlayLeft(PoseStack poseStack, SubmitNodeCollector collector, int light, Identifier skin, boolean sleeveVisible, CallbackInfo ci) {
+		goki$overlayArm(poseStack, collector, light, false);
+	}
+
+	private static boolean goki$level4() {
+		return ClientGokiState.selfIsTarget() && GokiStage.overlayLevel(ClientGokiState.stage) >= 4;
+	}
+
+	private static void goki$overlayArm(PoseStack poseStack, SubmitNodeCollector collector, int light, boolean right) {
 		if (!ClientGokiState.selfIsTarget()) {
 			return;
 		}
@@ -67,6 +86,15 @@ public abstract class AvatarRendererMixin<AvatarlikeEntity extends Avatar & Clie
 		if (!GokiRender.textureExists(texture)) {
 			return;
 		}
-		collector.submitModelPart(arm, poseStack, (level >= 4 ? RenderTypes.entityCutout(texture) : RenderTypes.entityTranslucent(texture)), light, OverlayTexture.NO_OVERLAY, null);
+		Minecraft mc = Minecraft.getInstance();
+		boolean slim = mc.player != null && mc.player.getSkin().model() == PlayerModelType.SLIM;
+		PlayerModel model = OverlayModels.get(slim);
+		ModelPart arm = right ? model.rightArm : model.leftArm;
+		arm.resetPose();
+		arm.visible = true;
+		model.leftSleeve.visible = false;
+		model.rightSleeve.visible = false;
+		arm.zRot = right ? 0.1F : -0.1F; // same pose tweak vanilla applies to the first-person arm
+		collector.submitModelPart(arm, poseStack, RenderTypes.entityTranslucent(texture), light, OverlayTexture.NO_OVERLAY, null);
 	}
 }

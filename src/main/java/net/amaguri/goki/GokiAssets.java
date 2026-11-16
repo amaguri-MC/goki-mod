@@ -18,6 +18,13 @@ public final class GokiAssets {
 			GokiMod.id("textures/goki/overlay_3.png"),
 			GokiMod.id("textures/goki/overlay_4.png"),
 	};
+	/**
+	 * Elytra look for the target by elytraLevel: 1 = vanilla elytra texture drawn with ELYTRA_TINT (no file),
+	 * 2 = cockroach-wing texture (vanilla elytra UV layout, 64x32, owner W3).
+	 */
+	public static final Identifier ELYTRA_COCKROACH = GokiMod.id("textures/goki/elytra_2.png");
+	/** ARGB multiply colour for elytraLevel 1 (slightly caramel-brown). */
+	public static final int ELYTRA_TINT = 0xFFD9A877;
 	/** First-person HUD: antenna tips peeking from the top edge. 128x64, transparent, left & right antenna in one image. */
 	public static final Identifier ANTENNA_HUD = GokiMod.id("textures/goki/antenna_hud.png");
 	/** Antennae on the head (3rd person, stage 5-6). Owner W2 (model + texture). */

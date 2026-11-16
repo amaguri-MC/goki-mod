@@ -60,6 +60,7 @@ public final class GokiCommands {
 		int n = IntegerArgumentType.getInteger(ctx, "n");
 		int old = GokiState.setStage(server, n);
 		Enhancements.applyAll(server);
+		ElytraGrant.check(server);
 		if (n > old) {
 			LevelUp.announce(server, old, n);
 		}

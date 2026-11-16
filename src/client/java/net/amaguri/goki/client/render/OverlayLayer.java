@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.PlayerModelType;
 
 import net.amaguri.goki.GokiAssets;
 import net.amaguri.goki.GokiStage;
@@ -31,11 +32,10 @@ public final class OverlayLayer extends RenderLayer<AvatarRenderState, PlayerMod
 		if (!GokiRender.textureExists(texture)) {
 			return;
 		}
-		poseStack.pushPose();
-		// a hair larger than the body so the translucent overlay never z-fights with the skin
-		poseStack.scale(1.002F, 1.002F, 1.002F);
-		collector.submitModel(this.getParentModel(), state, poseStack, (level >= 4 ? RenderTypes.entityCutout(texture) : RenderTypes.entityTranslucent(texture)), light,
+		boolean slim = state.skin != null && state.skin.model() == PlayerModelType.SLIM;
+		PlayerModel model = OverlayModels.get(slim); // inflated copy: sits outside the skin's second layer
+		model.setupAnim(state);
+		collector.submitModel(model, state, poseStack, RenderTypes.entityTranslucent(texture), light,
 				LivingEntityRenderer.getOverlayCoords(state, 0.0F), EntityRenderState.NO_OUTLINE, null);
-		poseStack.popPose();
 	}
 }

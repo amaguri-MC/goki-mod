@@ -41,6 +41,7 @@ public final class GokiServer {
 		int t = server.getTickCount();
 		if (t % 20 == 0) {
 			Progress.check(server);
+			ElytraGrant.check(server);
 			Enhancements.applyAll(server); // keeps buffs alive across logout, death, dimension change, milk
 		}
 		SprayClouds.tick(server);

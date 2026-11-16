@@ -15,6 +15,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
 
+import net.amaguri.goki.GokiStage;
 import net.amaguri.goki.net.StageSyncPayload;
 
 /**
@@ -32,11 +33,13 @@ public final class GokiState {
 		String target;
 		String targetName;
 		int stage;
+		boolean elytraGiven;
 	}
 
 	private static volatile UUID target = null;
 	private static volatile String targetName = "";
 	private static volatile int stage = 0;
+	private static volatile boolean elytraGiven = false;
 	private static Path file;
 
 	// ---- load / save ----
@@ -46,6 +49,7 @@ public final class GokiState {
 		target = null;
 		targetName = "";
 		stage = 0;
+		elytraGiven = false;
 		if (!Files.exists(file)) {
 			return;
 		}
@@ -53,6 +57,7 @@ public final class GokiState {
 			Data d = GSON.fromJson(r, Data.class);
 			if (d != null) {
 				stage = StageLogic.clamp(d.stage);
+				elytraGiven = d.elytraGiven;
 				targetName = d.targetName == null ? "" : d.targetName;
 				if (d.target != null && !d.target.isBlank()) {
 					target = UUID.fromString(d.target);
@@ -71,6 +76,7 @@ public final class GokiState {
 		target = null;
 		targetName = "";
 		stage = 0;
+		elytraGiven = false;
 	}
 
 	private static void save() {
@@ -81,6 +87,7 @@ public final class GokiState {
 		d.target = target == null ? null : target.toString();
 		d.targetName = targetName;
 		d.stage = stage;
+		d.elytraGiven = elytraGiven;
 		try (Writer w = Files.newBufferedWriter(file, StandardCharsets.UTF_8)) {
 			GSON.toJson(d, w);
 		} catch (Exception e) {
@@ -118,6 +125,15 @@ public final class GokiState {
 		return t == null ? null : server.getPlayerList().getPlayer(t);
 	}
 
+	public static boolean elytraGiven() {
+		return elytraGiven;
+	}
+
+	public static void markElytraGiven() {
+		elytraGiven = true;
+		save();
+	}
+
 	// ---- changes (each saves and syncs to every client) ----
 
 	public static void setTarget(MinecraftServer server, ServerPlayer player) {
@@ -131,6 +147,9 @@ public final class GokiState {
 	public static int setStage(MinecraftServer server, int newStage) {
 		int old = stage;
 		stage = StageLogic.clamp(newStage);
+		if (!GokiStage.elytra(stage)) {
+			elytraGiven = false; // set back below the elytra stage (re-shoots): may be granted again
+		}
 		save();
 		syncAll(server);
 		return old;
