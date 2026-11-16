@@ -87,7 +87,11 @@ public class GokiClientGameTest implements FabricClientGameTest {
 			}
 
 			// spray: instant death
-			sp.getServer().runCommand("execute as @p run effect clear @s");
+			sp.getServer().runCommand("execute as @p in minecraft:the_end run tp @s 0 75 0");
+			context.waitTicks(150); // slow falling: land on the island first
+			closeScreens(context);
+			sp.getServer().runCommand("execute as @p run effect clear @s minecraft:resistance");
+			log("player alive before spray: " + sp.getServer().computeOnServer(s -> s.getPlayerList().getPlayers().get(0).isAlive() + " y=" + s.getPlayerList().getPlayers().get(0).getY()));
 			for (String line : capture(sp, "goki spray")) {
 				log("spray: " + line);
 			}
