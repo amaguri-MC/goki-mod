@@ -1,0 +1,12 @@
+{
+	"required": true,
+	"package": "net.amaguri.goki.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+		"FoodDataMixin",
+		"PlayerClimbMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
