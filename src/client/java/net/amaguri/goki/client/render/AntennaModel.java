@@ -42,10 +42,10 @@ public final class AntennaModel extends EntityModel<AvatarRenderState> {
 	public static LayerDefinition createLayer() {
 		MeshDefinition mesh = new MeshDefinition();
 		PartDefinition root = mesh.getRoot();
-		PartDefinition p_ant_l1 = root.addOrReplaceChild("ant_l1", CubeListBuilder.create().texOffs(0, 0).addBox(-0.5F, -6.0F, -0.5F, 1.0F, 6.0F, 1.0F), PartPose.offsetAndRotation(2.0F, -8.0F, -3.0F, 0.4F, 0.0F, 0.3F));
+		PartDefinition p_ant_l1 = root.addOrReplaceChild("ant_l1", CubeListBuilder.create().texOffs(0, 0).addBox(-0.5F, -6.0F, -0.5F, 1.0F, 6.0F, 1.0F), PartPose.offsetAndRotation(3.0F, -8.0F, -3.0F, 0.4F, 0.0F, 0.7F));
 		PartDefinition p_ant_l2 = p_ant_l1.addOrReplaceChild("ant_l2", CubeListBuilder.create().texOffs(4, 0).addBox(-0.5F, -6.0F, -0.5F, 1.0F, 6.0F, 1.0F), PartPose.offsetAndRotation(0.0F, -6.0F, 0.0F, 0.2F, 0.0F, 0.0F));
 		PartDefinition p_ant_l3 = p_ant_l2.addOrReplaceChild("ant_l3", CubeListBuilder.create().texOffs(8, 0).addBox(-0.5F, -4.0F, -0.5F, 1.0F, 4.0F, 1.0F).texOffs(12, 0).addBox(-1.0F, -4.5F, -1.0F, 2.0F, 2.0F, 2.0F), PartPose.offsetAndRotation(0.0F, -6.0F, 0.0F, 0.25F, 0.0F, 0.0F));
-		PartDefinition p_ant_r1 = root.addOrReplaceChild("ant_r1", CubeListBuilder.create().texOffs(0, 0).addBox(-0.5F, -6.0F, -0.5F, 1.0F, 6.0F, 1.0F), PartPose.offsetAndRotation(-2.0F, -8.0F, -3.0F, 0.4F, 0.0F, -0.3F));
+		PartDefinition p_ant_r1 = root.addOrReplaceChild("ant_r1", CubeListBuilder.create().texOffs(0, 0).addBox(-0.5F, -6.0F, -0.5F, 1.0F, 6.0F, 1.0F), PartPose.offsetAndRotation(-3.0F, -8.0F, -3.0F, 0.4F, 0.0F, -0.7F));
 		PartDefinition p_ant_r2 = p_ant_r1.addOrReplaceChild("ant_r2", CubeListBuilder.create().texOffs(4, 0).addBox(-0.5F, -6.0F, -0.5F, 1.0F, 6.0F, 1.0F), PartPose.offsetAndRotation(0.0F, -6.0F, 0.0F, 0.2F, 0.0F, 0.0F));
 		PartDefinition p_ant_r3 = p_ant_r2.addOrReplaceChild("ant_r3", CubeListBuilder.create().texOffs(8, 0).addBox(-0.5F, -4.0F, -0.5F, 1.0F, 4.0F, 1.0F).texOffs(12, 0).addBox(-1.0F, -4.5F, -1.0F, 2.0F, 2.0F, 2.0F), PartPose.offsetAndRotation(0.0F, -6.0F, 0.0F, 0.25F, 0.0F, 0.0F));
 		return LayerDefinition.create(mesh, 32, 16);

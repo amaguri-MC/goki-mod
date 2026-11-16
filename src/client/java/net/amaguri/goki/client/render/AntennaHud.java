@@ -26,7 +26,7 @@ public final class AntennaHud {
 	/** How many GUI pixels of the image hang into the screen (the rest is cut off above the top edge). */
 	private static final int PEEK = 30;
 	/** Horizontal distance of each half's centre from the screen centre, in GUI pixels. */
-	private static final int SPREAD = 22;
+	private static final int SPREAD = 40;
 
 	private static float angLeft;
 	private static float angRight;
