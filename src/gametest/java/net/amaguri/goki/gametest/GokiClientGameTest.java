@@ -42,8 +42,8 @@ public class GokiClientGameTest implements FabricClientGameTest {
 			context.waitTicks(10);
 			closeScreens(context);
 
-			// 1. stages 0..7
-			for (int n = 0; n <= 7; n++) {
+			// 1. stages 0..8
+			for (int n = 0; n <= 8; n++) {
 				sp.getServer().runCommand("goki stage " + n);
 				final int stage = n;
 				if (n > 0) {
@@ -64,6 +64,12 @@ public class GokiClientGameTest implements FabricClientGameTest {
 				context.takeScreenshot("stage" + n + "_3_front");
 				setCamera(context, CameraType.FIRST_PERSON);
 				closeScreens(context);
+				if (n == 3 || n == 6) {
+					context.runOnClient(c -> c.options.hideGui = true);
+					context.waitTicks(3);
+					context.takeScreenshot("stage" + n + "_4_f1");
+					context.runOnClient(c -> c.options.hideGui = false);
+				}
 			}
 
 			// 2. status
