@@ -12,7 +12,7 @@ import net.amaguri.goki.GokiHooks;
 import net.amaguri.goki.GokiStage;
 
 /**
- * Wall climbing for the target (stage 4+), like a spider: while pushing into a wall and holding forward the
+ * Wall climbing for the target (GokiStage.wallClimb), like a spider: while pushing into a wall and holding forward the
  * player counts as "on a climbable". Vanilla LivingEntity.travel then lifts the player at 0.2/tick on
  * collision, and sneaking holds position, exactly like a ladder.
  * Player declares onClimbable itself, so this targets Player (not LivingEntity).

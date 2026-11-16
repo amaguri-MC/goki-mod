@@ -11,7 +11,7 @@ import net.minecraft.sounds.SoundSource;
 import net.amaguri.goki.GokiStage;
 
 /**
- * Stage 6+: while the target walks, now and then a faint, high-pitched scuttle (silverfish step) that the
+ * GokiStage.rustle: while the target walks, now and then a faint, high-pitched scuttle (silverfish step) that the
  * people around can hear (not the target). Distance based, so it does not depend on player.tickCount.
  */
 public final class Rustle {

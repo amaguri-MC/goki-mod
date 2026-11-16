@@ -74,7 +74,7 @@ public final class StageLogic {
 	}
 
 	public static double maxHealthBonus(int s) {
-		return s >= 7 ? 4.0 : 0.0;
+		return s >= 8 ? 4.0 : 0.0;
 	}
 
 	public static boolean fireResistance(int s) {
@@ -82,6 +82,11 @@ public final class StageLogic {
 	}
 
 	public static boolean nightVision(int s) {
-		return s >= 6;
+		return s >= 7;
+	}
+
+	/** Block break speed, ADD_MULTIPLIED_BASE: S6 +20%. */
+	public static double breakSpeedBonus(int s) {
+		return s >= 6 ? 0.2 : 0.0;
 	}
 }

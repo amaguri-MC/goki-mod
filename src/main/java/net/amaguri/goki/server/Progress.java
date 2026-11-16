@@ -1,10 +1,12 @@
 package net.amaguri.goki.server;
 
 import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
@@ -38,6 +40,9 @@ public final class Progress {
 		if (raw == null) {
 			return false;
 		}
+		if (raw.startsWith(ITEM_PREFIX)) {
+			return anyoneHas(server, raw.substring(ITEM_PREFIX.length()));
+		}
 		Identifier id = Identifier.tryParse(raw);
 		if (id == null) {
 			return false;
@@ -48,6 +53,23 @@ public final class Progress {
 		}
 		for (ServerPlayer p : server.getPlayerList().getPlayers()) {
 			if (p.getAdvancements().getOrStartProgress(holder).isDone()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** "item:<id>" entries in GokiStage.ADVANCEMENTS: reached when somebody carries that item. */
+	private static final String ITEM_PREFIX = "item:";
+
+	private static boolean anyoneHas(MinecraftServer server, String itemId) {
+		Identifier id = Identifier.tryParse(itemId);
+		if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
+			return false;
+		}
+		Item item = BuiltInRegistries.ITEM.getValue(id);
+		for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+			if (has(p, item)) {
 				return true;
 			}
 		}
@@ -66,12 +88,24 @@ public final class Progress {
 			case 4 -> p.level().dimension() == Level.NETHER;
 			case 5 -> has(p, Items.BLAZE_ROD);
 			case 6 -> has(p, Items.ENDER_EYE);
-			case 7 -> p.level().dimension() == Level.END;
+			case 7 -> count(p, Items.ENDER_EYE) >= 2; // follow_ender_eye is hard to reach in creative
+			case 8 -> p.level().dimension() == Level.END;
 			default -> false;
 		};
 	}
 
 	private static boolean has(ServerPlayer p, Item item) {
 		return p.getInventory().contains(stack -> stack.getItem() == item);
+	}
+
+	private static int count(ServerPlayer p, Item item) {
+		int total = 0;
+		for (int i = 0; i < p.getInventory().getContainerSize(); i++) {
+			ItemStack stack = p.getInventory().getItem(i);
+			if (stack.getItem() == item) {
+				total += stack.getCount();
+			}
+		}
+		return total;
 	}
 }

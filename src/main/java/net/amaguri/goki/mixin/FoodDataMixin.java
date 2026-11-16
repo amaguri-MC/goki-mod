@@ -13,7 +13,7 @@ import net.amaguri.goki.GokiHooks;
 import net.amaguri.goki.GokiStage;
 
 /**
- * Target (stage 2+) never gets hungry: the hidden exhaustion counter is cleared before every food tick, so
+ * Target (GokiStage.noHunger) never gets hungry: the hidden exhaustion counter is cleared before every food tick, so
  * neither food level nor saturation is ever drained. Regeneration and eating work as usual.
  */
 @Mixin(FoodData.class)
