@@ -134,8 +134,8 @@ public class GokiClientGameTest implements FabricClientGameTest {
 	/** An open pause screen freezes the integrated server, so close it whenever we wait. */
 	private static void closeScreens(ClientGameTestContext context) {
 		context.runOnClient(c -> {
-			if (c.screen instanceof PauseScreen) {
-				c.setScreen(null);
+			if (c.gui.screen() instanceof PauseScreen) {
+				c.gui.setScreen(null);
 			}
 		});
 	}
