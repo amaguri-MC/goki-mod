@@ -17,7 +17,7 @@ public final class SprayState {
 
 	/** True while a target is set: the dragon is a spray can for everybody. */
 	public static boolean active() {
-		return !StageSyncPayload.NONE.equals(ClientGokiState.target);
+		return ClientGokiState.active();
 	}
 
 	/** Same yaw source as vanilla's dragon renderer (flight history, 7 ticks back). */

@@ -1,24 +1,29 @@
 package net.amaguri.goki.client;
 
+import java.util.Set;
 import java.util.UUID;
 
 import net.minecraft.client.Minecraft;
 
-import net.amaguri.goki.net.StageSyncPayload;
-
-/** Client copy of the server state. Filled by the StageSyncPayload receiver (W2). CONTRACT FILE. */
+/** Client copy of the server state. Filled by the StageSyncPayload receiver. CONTRACT FILE. */
 public final class ClientGokiState {
 	private ClientGokiState() {
 	}
 
-	public static volatile UUID target = StageSyncPayload.NONE;
+	/** All targets (share one stage). Empty = mod inactive. */
+	public static volatile Set<UUID> targets = Set.of();
 	public static volatile int stage = 0;
 
 	public static boolean isTarget(UUID uuid) {
-		return uuid != null && !StageSyncPayload.NONE.equals(target) && target.equals(uuid);
+		return uuid != null && targets.contains(uuid);
 	}
 
-	/** Stage for this player if it is the target, else 0. */
+	/** True while at least one target is set (the mod is active for everyone). */
+	public static boolean active() {
+		return !targets.isEmpty();
+	}
+
+	/** Stage for this player if it is a target, else 0. */
 	public static int stageOf(UUID uuid) {
 		return isTarget(uuid) ? stage : 0;
 	}
@@ -29,7 +34,7 @@ public final class ClientGokiState {
 	}
 
 	public static void reset() {
-		target = StageSyncPayload.NONE;
+		targets = Set.of();
 		stage = 0;
 	}
 }

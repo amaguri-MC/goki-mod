@@ -33,8 +33,7 @@ public final class LevelUp {
 			p.connection.send(new ClientboundSoundPacket(BuiltInRegistries.SOUND_EVENT.wrapAsHolder(SoundEvents.PLAYER_LEVELUP),
 					SoundSource.PLAYERS, p.getX(), p.getY(), p.getZ(), 1.0f, 1.0f, p.getRandom().nextLong()));
 		}
-		ServerPlayer target = GokiState.onlineTarget(server);
-		if (target != null) {
+		for (ServerPlayer target : GokiState.onlineTargets(server)) {
 			// chat lines for every passed stage that has one, so a skipped stage does not lose its bonus
 			for (int s = from + 1; s <= to; s++) {
 				String line = StageText.targetBonus(s);

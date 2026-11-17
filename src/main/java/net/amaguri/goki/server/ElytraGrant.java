@@ -12,7 +12,7 @@ import net.minecraft.world.item.component.TooltipDisplay;
 import net.amaguri.goki.GokiStage;
 
 /**
- * Once the stage reaches GokiStage.elytra (stage 5+), the target gets an unbreakable elytra in the chest slot, one time.
+ * Once the stage reaches GokiStage.elytra (stage 5+), every target gets an unbreakable elytra in the chest slot, one time each (the flag is per target; offline targets get it on joining).
  * A chestplate already worn goes to the inventory (or drops at the feet if it is full). The "given" flag is
  * saved in goki_state.json and reset when the stage drops below the elytra stage. The chat line comes from
  * StageText.targetBonus(5) via LevelUp.
@@ -22,15 +22,15 @@ public final class ElytraGrant {
 	}
 
 	public static void check(MinecraftServer server) {
-		if (!GokiStage.elytra(GokiState.stage()) || GokiState.elytraGiven()) {
+		if (!GokiStage.elytra(GokiState.stage())) {
 			return;
 		}
-		ServerPlayer p = GokiState.onlineTarget(server);
-		if (p == null) {
-			return; // given when the target joins
+		for (ServerPlayer p : GokiState.onlineTargets(server)) {
+			if (!GokiState.elytraGiven(p.getUUID())) {
+				give(p);
+				GokiState.markElytraGiven(p.getUUID());
+			}
 		}
-		give(p);
-		GokiState.markElytraGiven();
 	}
 
 	private static void give(ServerPlayer p) {

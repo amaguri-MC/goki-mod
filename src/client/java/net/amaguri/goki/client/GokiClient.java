@@ -26,7 +26,7 @@ public final class GokiClient implements ClientModInitializer {
 
 		// server -> client: who the target is and the current stage
 		ClientPlayNetworking.registerGlobalReceiver(StageSyncPayload.TYPE, (payload, context) -> {
-			ClientGokiState.target = payload.target();
+			ClientGokiState.targets = java.util.Set.copyOf(payload.targets());
 			ClientGokiState.stage = payload.stage();
 		});
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> ClientGokiState.reset());
