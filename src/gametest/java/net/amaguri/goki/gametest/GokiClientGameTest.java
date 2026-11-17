@@ -77,6 +77,39 @@ public class GokiClientGameTest implements FabricClientGameTest {
 				}
 			}
 
+			// multi-target: list / remove / add
+			for (String line : capture(sp, "goki target list")) {
+				log("target list: " + line.replace("\n", " | "));
+			}
+			sp.getServer().runCommand("execute as @p run goki target remove @p");
+			context.waitFor(c -> !context.computeOnClient(m -> ClientGokiState.selfIsTarget()), 200);
+			sp.getConnection().waitForClientboundPackets();
+			context.waitTicks(10);
+			closeScreens(context);
+			log("after remove: selfIsTarget=" + context.computeOnClient(c -> ClientGokiState.selfIsTarget()));
+			for (String line : capture(sp, "goki target list")) {
+				log("target list(removed): " + line.replace("\n", " | "));
+			}
+			for (String line : capture(sp, "goki status")) {
+				log("status(removed): " + line.replace("\n", " | "));
+			}
+			setCamera(context, CameraType.FIRST_PERSON);
+			context.waitTicks(3);
+			context.takeScreenshot("multi_1_removed_first");
+			setCamera(context, CameraType.THIRD_PERSON_FRONT);
+			context.waitTicks(3);
+			context.takeScreenshot("multi_2_removed_front");
+			sp.getServer().runCommand("execute as @p run goki target add @p");
+			context.waitFor(c -> context.computeOnClient(m -> ClientGokiState.selfIsTarget()), 200);
+			sp.getConnection().waitForClientboundPackets();
+			context.waitTicks(10);
+			closeScreens(context);
+			log("after add: selfIsTarget=" + context.computeOnClient(c -> ClientGokiState.selfIsTarget()));
+			context.takeScreenshot("multi_3_readded_front");
+			setCamera(context, CameraType.FIRST_PERSON);
+			context.waitTicks(3);
+			context.takeScreenshot("multi_4_readded_first");
+
 			// 2. status
 			for (String line : capture(sp, "goki status")) {
 				log("status: " + line.replace("\n", " | "));
