@@ -34,6 +34,11 @@ public final class ElytraGrant {
 	}
 
 	private static void give(ServerPlayer p) {
+		// Already wearing (or carrying) an elytra, e.g. target removed and re-added: don't hand out a second one.
+		if (p.getItemBySlot(EquipmentSlot.CHEST).getItem() == Items.ELYTRA
+				|| p.getInventory().contains(s -> s.getItem() == Items.ELYTRA)) {
+			return;
+		}
 		ItemStack elytra = new ItemStack(Items.ELYTRA);
 		elytra.set(DataComponents.UNBREAKABLE, Unit.INSTANCE);
 		elytra.set(DataComponents.TOOLTIP_DISPLAY, TooltipDisplay.DEFAULT.withHidden(DataComponents.UNBREAKABLE, true));
