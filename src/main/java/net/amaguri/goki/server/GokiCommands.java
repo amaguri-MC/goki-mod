@@ -78,12 +78,14 @@ public final class GokiCommands {
 				removed++;
 			}
 		}
+		Enhancements.applyAll(server);
 		say(ctx, "ターゲットを " + removed + " 人外しました（残り " + GokiState.entries().size() + " 人）");
 		return removed;
 	}
 
 	private static int targetClear(CommandContext<CommandSourceStack> ctx) {
 		GokiState.clearTargets(ctx.getSource().getServer());
+		Enhancements.applyAll(ctx.getSource().getServer());
 		say(ctx, "ターゲットを全員解除しました");
 		return 1;
 	}

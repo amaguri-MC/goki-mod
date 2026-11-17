@@ -8,6 +8,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.google.gson.Gson;
@@ -32,11 +34,12 @@ public final class GokiState {
 
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-	/** One target: id, last known name, and whether the elytra was already handed out to him. */
+	/** One target: id and last known name. */
 	public static final class Entry {
 		public String uuid;
 		public String name;
-		public boolean elytraGiven;
+		/** Legacy: read once for migration, then nulled so it is no longer written. */
+		public Boolean elytraGiven;
 
 		public UUID id() {
 			return UUID.fromString(uuid);
@@ -46,6 +49,7 @@ public final class GokiState {
 	/** JSON shape on disk. target/targetName/elytraGiven are the legacy single-target fields (read only). */
 	private static final class Data {
 		List<Entry> targets;
+		List<String> elytraGivenIds;
 		int stage;
 		String target;
 		String targetName;
@@ -53,6 +57,8 @@ public final class GokiState {
 	}
 
 	private static final List<Entry> targets = new CopyOnWriteArrayList<>();
+	/** Who already got the elytra. Independent of the target list (removing a target keeps it). */
+	private static final Set<UUID> elytraGiven = ConcurrentHashMap.newKeySet();
 	private static volatile int stage = 0;
 	private static Path file;
 
@@ -76,13 +82,24 @@ public final class GokiState {
 								e.name = "";
 							}
 							targets.add(e);
+							if (Boolean.TRUE.equals(e.elytraGiven)) {
+								elytraGiven.add(e.id());
+							}
+							e.elytraGiven = null;
+						}
+					}
+					if (d.elytraGivenIds != null) {
+						for (String id : d.elytraGivenIds) {
+							elytraGiven.add(UUID.fromString(id));
 						}
 					}
 				} else if (d.target != null && !d.target.isBlank()) { // migration from the single-target format
 					Entry e = new Entry();
 					e.uuid = UUID.fromString(d.target).toString();
 					e.name = d.targetName == null ? "" : d.targetName;
-					e.elytraGiven = d.elytraGiven;
+					if (d.elytraGiven) {
+						elytraGiven.add(e.id());
+					}
 					targets.add(e);
 				}
 			}
@@ -94,6 +111,7 @@ public final class GokiState {
 
 	private static void reset() {
 		targets.clear();
+		elytraGiven.clear();
 		stage = 0;
 	}
 
@@ -108,6 +126,10 @@ public final class GokiState {
 		}
 		Data d = new Data();
 		d.targets = new ArrayList<>(targets);
+		d.elytraGivenIds = new ArrayList<>();
+		for (UUID id : elytraGiven) {
+			d.elytraGivenIds.add(id.toString());
+		}
 		d.stage = stage;
 		try (Writer w = Files.newBufferedWriter(file, StandardCharsets.UTF_8)) {
 			GSON.toJson(d, w);
@@ -163,14 +185,11 @@ public final class GokiState {
 	}
 
 	public static boolean elytraGiven(UUID uuid) {
-		Entry e = find(uuid);
-		return e != null && e.elytraGiven;
+		return elytraGiven.contains(uuid);
 	}
 
 	public static void markElytraGiven(UUID uuid) {
-		Entry e = find(uuid);
-		if (e != null) {
-			e.elytraGiven = true;
+		if (elytraGiven.add(uuid)) {
 			save();
 		}
 	}
@@ -215,9 +234,7 @@ public final class GokiState {
 		int old = stage;
 		stage = StageLogic.clamp(newStage);
 		if (!GokiStage.elytra(stage)) {
-			for (Entry e : targets) {
-				e.elytraGiven = false; // set back below the elytra stage (re-shoots): may be granted again
-			}
+			elytraGiven.clear(); // set back below the elytra stage (re-shoots): may be granted again
 		}
 		save();
 		syncAll(server);

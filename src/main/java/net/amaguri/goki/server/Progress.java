@@ -19,8 +19,8 @@ public final class Progress {
 
 	public static void check(MinecraftServer server) {
 		int current = GokiState.stage();
-		if (current >= GokiStage.MAX) {
-			return;
+		if (current >= GokiStage.MAX || !GokiState.hasTargets()) {
+			return; // no target: the mod is inactive, the stage does not advance
 		}
 		int next = StageLogic.nextStage(current, n -> anyoneDone(server, n));
 		if (next > current) {

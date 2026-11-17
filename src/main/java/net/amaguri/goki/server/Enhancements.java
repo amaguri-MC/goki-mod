@@ -42,7 +42,11 @@ public final class Enhancements {
 		}
 	}
 
+	/** With no target the mod is inactive: stage 0 strips every goki modifier and hidden effect. */
 	public static void apply(ServerPlayer p, int stage) {
+		if (!GokiState.hasTargets()) {
+			stage = 0;
+		}
 		modifier(p, Attributes.MOVEMENT_SPEED, ID_SPEED, StageLogic.speedBonus(stage), AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
 		modifier(p, Attributes.ARMOR, ID_ARMOR, StageLogic.armorBonus(stage), AttributeModifier.Operation.ADD_VALUE);
 		modifier(p, Attributes.ATTACK_DAMAGE, ID_ATTACK, StageLogic.attackBonus(stage), AttributeModifier.Operation.ADD_VALUE);
@@ -50,6 +54,9 @@ public final class Enhancements {
 		modifier(p, Attributes.MAX_HEALTH, ID_HEALTH, StageLogic.maxHealthBonus(stage), AttributeModifier.Operation.ADD_VALUE);
 		effect(p, MobEffects.FIRE_RESISTANCE, StageLogic.fireResistance(stage));
 		effect(p, MobEffects.NIGHT_VISION, StageLogic.nightVision(stage));
+		if (p.getHealth() > p.getMaxHealth()) {
+			p.setHealth(p.getMaxHealth());
+		}
 	}
 
 	private static void modifier(ServerPlayer p, Holder<Attribute> attribute, Identifier id, double amount, AttributeModifier.Operation op) {
