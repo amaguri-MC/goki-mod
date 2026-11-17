@@ -28,9 +28,9 @@ public final class SprayClouds {
 
 	public static final ResourceKey<DamageType> INSECTICIDE = ResourceKey.create(Registries.DAMAGE_TYPE, GokiMod.id("insecticide"));
 
-	/** Spray mode is on exactly while a target is set. */
+	/** Spray mode is on exactly while at least one target is set. */
 	public static boolean active() {
-		return GokiState.target() != null;
+		return GokiState.hasTargets();
 	}
 
 	public static boolean isSpray(AreaEffectCloud cloud) {
@@ -61,15 +61,28 @@ public final class SprayClouds {
 		return cloud;
 	}
 
-	/** The player the dragon should focus right now (late fight, target in the End), or null for vanilla behaviour. */
+	/**
+	 * The player the dragon should focus right now (late fight): among the targets in the dragon's level (the End),
+	 * the one closest to the dragon. Null means vanilla behaviour.
+	 */
 	public static ServerPlayer focusTarget(ServerLevel level, EnderDragon dragon) {
-		ServerPlayer target = GokiState.onlineTarget(level.getServer());
-		if (target == null || target.level() != level || target.isSpectator() || !target.isAlive()) {
+		boolean inEnd = level.dimension() == Level.END;
+		if (!StageLogic.sprayFocus(inEnd, dragon.isAlive() && !dragon.isDeadOrDying(), dragon.getHealth(), dragon.getMaxHealth())) {
 			return null;
 		}
-		boolean ok = StageLogic.sprayFocus(level.dimension() == Level.END, dragon.isAlive() && !dragon.isDeadOrDying(),
-				dragon.getHealth(), dragon.getMaxHealth());
-		return ok ? target : null;
+		ServerPlayer best = null;
+		double bestDist = Double.MAX_VALUE;
+		for (ServerPlayer t : GokiState.onlineTargets(level.getServer())) {
+			if (t.level() != level || t.isSpectator() || !t.isAlive()) {
+				continue;
+			}
+			double d = t.distanceToSqr(dragon);
+			if (d < bestDist) {
+				bestDist = d;
+				best = t;
+			}
+		}
+		return best;
 	}
 
 	/** The dragon that currently runs this phase instance (phase classes do not expose their dragon). */
@@ -82,19 +95,20 @@ public final class SprayClouds {
 		return null;
 	}
 
-	/** Every tick: the target touching any spray cloud dies. Nobody else is ever touched. */
+	/** Every tick: any target touching any spray cloud dies. Nobody else is ever touched. */
 	public static void tick(MinecraftServer server) {
-		ServerPlayer target = GokiState.onlineTarget(server);
-		if (target == null || !target.isAlive() || target.isSpectator()) {
-			return;
-		}
-		ServerLevel level = target.level();
-		for (AreaEffectCloud cloud : level.getEntitiesOfClass(AreaEffectCloud.class, target.getBoundingBox().inflate(8.0),
-				c -> isSpray(c) && !c.isWaiting())) {
-			if (cloud.getBoundingBox().intersects(target.getBoundingBox())
-					&& StageLogic.insideCloud(target.getX() - cloud.getX(), target.getZ() - cloud.getZ(), cloud.getRadius())) {
-				kill(level, target);
-				return;
+		for (ServerPlayer target : GokiState.onlineTargets(server)) {
+			if (!target.isAlive() || target.isSpectator()) {
+				continue;
+			}
+			ServerLevel level = target.level();
+			for (AreaEffectCloud cloud : level.getEntitiesOfClass(AreaEffectCloud.class, target.getBoundingBox().inflate(8.0),
+					c -> isSpray(c) && !c.isWaiting())) {
+				if (cloud.getBoundingBox().intersects(target.getBoundingBox())
+						&& StageLogic.insideCloud(target.getX() - cloud.getX(), target.getZ() - cloud.getZ(), cloud.getRadius())) {
+					kill(level, target);
+					break;
+				}
 			}
 		}
 	}

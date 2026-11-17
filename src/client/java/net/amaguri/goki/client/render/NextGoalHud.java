@@ -25,7 +25,7 @@ public final class NextGoalHud {
 	private static long changedAt;
 
 	public static void extract(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
-		if (StageSyncPayload.NONE.equals(ClientGokiState.target)) {
+		if (!ClientGokiState.active()) {
 			lastStage = -1;
 			return;
 		}

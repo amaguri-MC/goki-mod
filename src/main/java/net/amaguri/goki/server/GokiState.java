@@ -5,7 +5,10 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -19,8 +22,9 @@ import net.amaguri.goki.GokiStage;
 import net.amaguri.goki.net.StageSyncPayload;
 
 /**
- * Server-side truth: who the target is and the current stage. Saved next to the world as goki_state.json
- * (written on every change, so a crash loses nothing). Only touched from the server thread.
+ * Server-side truth: who the targets are (any number, all sharing one stage) and the current stage. Saved next to
+ * the world as goki_state.json (written on every change). An old file with a single "target" is migrated on load.
+ * Only touched from the server thread.
  */
 public final class GokiState {
 	private GokiState() {
@@ -28,28 +32,35 @@ public final class GokiState {
 
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-	/** JSON shape on disk. */
+	/** One target: id, last known name, and whether the elytra was already handed out to him. */
+	public static final class Entry {
+		public String uuid;
+		public String name;
+		public boolean elytraGiven;
+
+		public UUID id() {
+			return UUID.fromString(uuid);
+		}
+	}
+
+	/** JSON shape on disk. target/targetName/elytraGiven are the legacy single-target fields (read only). */
 	private static final class Data {
+		List<Entry> targets;
+		int stage;
 		String target;
 		String targetName;
-		int stage;
 		boolean elytraGiven;
 	}
 
-	private static volatile UUID target = null;
-	private static volatile String targetName = "";
+	private static final List<Entry> targets = new CopyOnWriteArrayList<>();
 	private static volatile int stage = 0;
-	private static volatile boolean elytraGiven = false;
 	private static Path file;
 
 	// ---- load / save ----
 
 	public static void load(MinecraftServer server) {
 		file = server.getWorldPath(LevelResource.ROOT).resolve("goki_state.json");
-		target = null;
-		targetName = "";
-		stage = 0;
-		elytraGiven = false;
+		reset();
 		if (!Files.exists(file)) {
 			return;
 		}
@@ -57,26 +68,38 @@ public final class GokiState {
 			Data d = GSON.fromJson(r, Data.class);
 			if (d != null) {
 				stage = StageLogic.clamp(d.stage);
-				elytraGiven = d.elytraGiven;
-				targetName = d.targetName == null ? "" : d.targetName;
-				if (d.target != null && !d.target.isBlank()) {
-					target = UUID.fromString(d.target);
+				if (d.targets != null) {
+					for (Entry e : d.targets) {
+						if (e != null && e.uuid != null) {
+							e.id(); // validates the UUID
+							if (e.name == null) {
+								e.name = "";
+							}
+							targets.add(e);
+						}
+					}
+				} else if (d.target != null && !d.target.isBlank()) { // migration from the single-target format
+					Entry e = new Entry();
+					e.uuid = UUID.fromString(d.target).toString();
+					e.name = d.targetName == null ? "" : d.targetName;
+					e.elytraGiven = d.elytraGiven;
+					targets.add(e);
 				}
 			}
 		} catch (Exception e) {
 			System.err.println("[goki] goki_state.json is broken, starting fresh: " + e);
-			target = null;
-			targetName = "";
-			stage = 0;
+			reset();
 		}
+	}
+
+	private static void reset() {
+		targets.clear();
+		stage = 0;
 	}
 
 	public static void unload() {
 		file = null;
-		target = null;
-		targetName = "";
-		stage = 0;
-		elytraGiven = false;
+		reset();
 	}
 
 	private static void save() {
@@ -84,10 +107,8 @@ public final class GokiState {
 			return;
 		}
 		Data d = new Data();
-		d.target = target == null ? null : target.toString();
-		d.targetName = targetName;
+		d.targets = new ArrayList<>(targets);
 		d.stage = stage;
-		d.elytraGiven = elytraGiven;
 		try (Writer w = Files.newBufferedWriter(file, StandardCharsets.UTF_8)) {
 			GSON.toJson(d, w);
 		} catch (Exception e) {
@@ -101,44 +122,90 @@ public final class GokiState {
 		return stage;
 	}
 
-	public static UUID target() {
-		return target;
+	/** True while at least one target is set (otherwise the mod is inactive: vanilla). */
+	public static boolean hasTargets() {
+		return !targets.isEmpty();
 	}
 
-	public static String targetName() {
-		return targetName;
+	/** Snapshot of all targets (online or not). */
+	public static List<Entry> entries() {
+		return List.copyOf(targets);
+	}
+
+	private static Entry find(UUID uuid) {
+		for (Entry e : targets) {
+			if (e.uuid.equals(uuid.toString())) {
+				return e;
+			}
+		}
+		return null;
 	}
 
 	public static boolean isTarget(UUID uuid) {
-		UUID t = target;
-		return t != null && t.equals(uuid);
+		return uuid != null && find(uuid) != null;
 	}
 
-	/** Stage for this player if it is the target, else 0 (matches the client-side contract). */
+	/** Stage for this player if it is a target, else 0 (matches the client-side contract). */
 	public static int stageFor(UUID uuid) {
 		return isTarget(uuid) ? stage : 0;
 	}
 
-	/** The target if currently online, else null. */
-	public static ServerPlayer onlineTarget(MinecraftServer server) {
-		UUID t = target;
-		return t == null ? null : server.getPlayerList().getPlayer(t);
+	/** All targets that are currently online. */
+	public static List<ServerPlayer> onlineTargets(MinecraftServer server) {
+		List<ServerPlayer> out = new ArrayList<>();
+		for (Entry e : targets) {
+			ServerPlayer p = server.getPlayerList().getPlayer(e.id());
+			if (p != null) {
+				out.add(p);
+			}
+		}
+		return out;
 	}
 
-	public static boolean elytraGiven() {
-		return elytraGiven;
+	public static boolean elytraGiven(UUID uuid) {
+		Entry e = find(uuid);
+		return e != null && e.elytraGiven;
 	}
 
-	public static void markElytraGiven() {
-		elytraGiven = true;
-		save();
+	public static void markElytraGiven(UUID uuid) {
+		Entry e = find(uuid);
+		if (e != null) {
+			e.elytraGiven = true;
+			save();
+		}
 	}
 
 	// ---- changes (each saves and syncs to every client) ----
 
-	public static void setTarget(MinecraftServer server, ServerPlayer player) {
-		target = player == null ? null : player.getUUID();
-		targetName = player == null ? "" : player.getPlainTextName();
+	/** Adds a target (or refreshes its name). Returns true if it was new. */
+	public static boolean addTarget(MinecraftServer server, ServerPlayer player) {
+		Entry e = find(player.getUUID());
+		boolean added = e == null;
+		if (added) {
+			e = new Entry();
+			e.uuid = player.getUUID().toString();
+			targets.add(e);
+		}
+		e.name = player.getPlainTextName();
+		save();
+		syncAll(server);
+		return added;
+	}
+
+	/** Removes a target. Returns true if it was one. Items already given are not taken back. */
+	public static boolean removeTarget(MinecraftServer server, UUID uuid) {
+		Entry e = find(uuid);
+		if (e == null) {
+			return false;
+		}
+		targets.remove(e);
+		save();
+		syncAll(server);
+		return true;
+	}
+
+	public static void clearTargets(MinecraftServer server) {
+		targets.clear();
 		save();
 		syncAll(server);
 	}
@@ -148,7 +215,9 @@ public final class GokiState {
 		int old = stage;
 		stage = StageLogic.clamp(newStage);
 		if (!GokiStage.elytra(stage)) {
-			elytraGiven = false; // set back below the elytra stage (re-shoots): may be granted again
+			for (Entry e : targets) {
+				e.elytraGiven = false; // set back below the elytra stage (re-shoots): may be granted again
+			}
 		}
 		save();
 		syncAll(server);
@@ -158,8 +227,11 @@ public final class GokiState {
 	// ---- network ----
 
 	private static StageSyncPayload payload() {
-		UUID t = target;
-		return new StageSyncPayload(t == null ? StageSyncPayload.NONE : t, stage);
+		List<UUID> ids = new ArrayList<>();
+		for (Entry e : targets) {
+			ids.add(e.id());
+		}
+		return new StageSyncPayload(ids, stage);
 	}
 
 	public static void syncTo(ServerPlayer player) {
@@ -172,5 +244,4 @@ public final class GokiState {
 			ServerPlayNetworking.send(player, p);
 		}
 	}
-
 }

@@ -58,3 +58,8 @@ lang は `/home/claude/agent/lang/w1.ja_jp.json` / `w1.en_us.json`（`death.atta
 ## 未検証
 - ここではビルド・実機不可。竜のフェーズ内部（ブレス雲が `flame` 経由で作られる／所有者が竜）は javap の宣言からの推定。ブレス雲を `flame` フィールドで掴めない場合はスプレー化されず vanilla のまま（その時は要調整）。
 - 調整値: `SprayClouds.spawn`（半径3・持続）、`StageLogic.RUSTLE_*`、`Enhancements.EFFECT_TICKS`。
+
+## 複数ターゲット（追記）
+- `GokiState` は target を複数持つ（全員が同じ stage を共有）。`goki_state.json` は `targets:[{uuid,name,elytraGiven}]`。旧形式（単数 `target`）は読み込み時に移行。
+- `/goki target add|remove <players>`（セレクタ可）/ `target clear` / `target list` / `target <player>`（= add）。`spray` は全オンライン生存ターゲット、`status` は全員表示。
+- 強化・満腹・壁登り・カサカサ・エリトラ（付与済みフラグはターゲットごと）・チャット・スプレー即死は全ターゲットに適用。終盤の狙いは「エンドにいるターゲットのうち竜に最も近い者」。
